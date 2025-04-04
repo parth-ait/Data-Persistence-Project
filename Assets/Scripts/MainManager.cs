@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,7 +11,8 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
-    public Text ScoreText;
+    public TextMeshProUGUI currentPlayer;
+    public TextMeshProUGUI bestPlayer;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -36,6 +38,11 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        m_Points = 0;
+
+        DisplayCurrentPlayer();
+        DisplayBestPlayer();
     }
 
     private void Update()
@@ -60,17 +67,43 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        DisplayCurrentPlayer();
+
+        if (m_Points >= LeaderboardManager.Instance.bestScore)
+        {
+            LeaderboardManager.Instance.bestScore = m_Points;
+            LeaderboardManager.Instance.bestPlayer = LeaderboardManager.Instance.currentPlayer;
+        }
+
+        DisplayBestPlayer();
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        LeaderboardManager.Instance.SaveScore();
+    }
+
+    public void GoBack()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    private void DisplayCurrentPlayer()
+    {
+        currentPlayer.text = LeaderboardManager.Instance.CurrentPlayerStats(m_Points);
+    }
+
+    private void DisplayBestPlayer()
+    {
+        bestPlayer.text = LeaderboardManager.Instance.BestPlayerStats(false);
     }
 }
